@@ -12,16 +12,12 @@ import SwiftData
 class Destination {
     var name: String
     var details: String
-    var date: Date
-    var priority: Int
     var rank: Int
     @Relationship(deleteRule: .cascade) var sights = [Sight]()
     
-    init(name: String = "", details: String = "", date: Date = .now, priority: Int = 2, rank: Int = 0) {
+    init(name: String = "", details: String = "", rank: Int = -1) {
         self.name = name
         self.details = details
-        self.date = date
-        self.priority = priority
         self.rank = rank
     }
 }

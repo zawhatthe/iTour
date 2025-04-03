@@ -11,13 +11,13 @@ import SwiftData
 struct ContentView: View {
     @Environment(\.modelContext) var modelContext
     @State private var path = [Destination]()
-    @State private var sortOrder = SortDescriptor(\Destination.name)
+    @State private var sortOrder = SortDescriptor(\Destination.rank)
     @State private var searchText: String = ""
     
     var body: some View {
         NavigationStack(path: $path) {
             DestinationListingView(sort: sortOrder, searchString: searchText)
-            .navigationTitle("iTour")
+            .navigationTitle("Pentangle")
             .navigationDestination(for: Destination.self, destination: EditDestinationView.init)
             .searchable(text: $searchText)
             .toolbar {
@@ -26,12 +26,8 @@ struct ContentView: View {
                     Picker("Sort", selection: $sortOrder) {
                         Text("Name")
                         .tag(SortDescriptor(\Destination.name))
-                        
-                        Text("Priority")
-                            .tag(SortDescriptor(\Destination.priority, order: .reverse))
-                        
-                        Text("Date")
-                            .tag(SortDescriptor(\Destination.date))
+                        Text("Ranking")
+                            .tag(SortDescriptor(\Destination.rank))
                     }
                     .pickerStyle(.inline)
                 }
@@ -41,6 +37,11 @@ struct ContentView: View {
     
     func addDestination() {
         let destination = Destination()
+        
+//        // Find the highest current rank and add 1
+//        let highestRank = try? modelContext.fetch(FetchDescriptor<Destination>(sortBy: [SortDescriptor(\.rank, order: .reverse)])).first?.rank ?? -1
+//        destination.rank = ((highestRank ?? -1) + 1)
+        
         modelContext.insert(destination)
         path = [destination]
     }
