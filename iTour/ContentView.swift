@@ -94,45 +94,39 @@ struct ContentView: View {
     
     var body: some View {
         NavigationStack(path: $path) {
-            VStack(spacing: 0) {
-                // View mode toggle at the top
-                Picker("View Mode", selection: $viewMode) {
-                    Text("Categories").tag(ViewMode.categories)
-                    Text("Rankings").tag(ViewMode.ranks)
+            ZStack(alignment: .bottom) {
+                VStack(spacing: 0) {
+                    // Tab bar changes based on view mode
+                    if viewMode == .categories {
+                        // Category tabs
+                        categoryTabsView
+                    } else {
+                        // Rank tabs
+                        rankTabsView
+                    }
+                    
+                    // Main content area
+                    if viewMode == .categories {
+                        // Filter by category
+                        DestinationListingView(
+                            sort: sortOrder,
+                            filterCategory: selectedCategoryIndex >= 0 && selectedCategoryIndex < categories.count ? categories[selectedCategoryIndex] : nil,
+                            showCategory: false
+                        )
+                    } else {
+                        // Filter by rank
+                        let rankFilter = rankValues[selectedRankIndex]
+                        RankFilterView(rank: rankFilter, showCategory: true)
+                    }
+                    
+                    // Add spacing at the bottom to account for the custom tab bar
+                    Spacer(minLength: 70)
                 }
-                .pickerStyle(SegmentedPickerStyle())
-                .padding(.horizontal)
-                .padding(.top, 8)
+                .navigationTitle(navigationTitle)
+                .navigationDestination(for: Destination.self, destination: EditDestinationView.init)
                 
-                // Tab bar changes based on view mode
-                if viewMode == .categories {
-                    // Category tabs
-                    categoryTabsView
-                } else {
-                    // Rank tabs
-                    rankTabsView
-                }
-                
-                // Main content area
-                if viewMode == .categories {
-                    // Filter by category
-                    DestinationListingView(
-                        sort: sortOrder,
-                        filterCategory: selectedCategoryIndex >= 0 && selectedCategoryIndex < categories.count ? categories[selectedCategoryIndex] : nil
-                    )
-                } else {
-                    // Filter by rank
-                    let rankFilter = rankValues[selectedRankIndex]
-                    RankFilterView(rank: rankFilter)
-                }
-                
-                Spacer()
-            }
-            .navigationTitle(navigationTitle)
-            .navigationDestination(for: Destination.self, destination: EditDestinationView.init)
-            //.searchable(text: $searchText)
-            .toolbar {
-                Button("Add", systemImage: "plus", action: addDestination)
+                // Custom bottom navigation bar
+                bottomNavigationBar
             }
         }
         .onAppear {
@@ -222,6 +216,64 @@ struct ContentView: View {
         }
     }
     
+    // Custom bottom navigation bar
+    var bottomNavigationBar: some View {
+        VStack(spacing: 0) {
+            Divider()
+            
+            HStack(spacing: 0) {
+                // View mode toggle
+                Button(action: {
+                    viewMode = .categories
+                }) {
+                    VStack {
+                        Image(systemName: "folder.fill")
+                            .font(.system(size: 20))
+                        Text("Categories")
+                            .font(.caption)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .foregroundColor(viewMode == .categories ? .blue : .gray)
+                }
+                
+                // Add button
+                Button(action: addDestination) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.blue)
+                            .frame(width: 56, height: 56)
+                            .shadow(radius: 2)
+                        
+                        Image(systemName: "plus")
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                    .offset(y: -15)
+                }
+                .frame(width: 60)
+                
+                // Rankings toggle
+                Button(action: {
+                    viewMode = .ranks
+                }) {
+                    VStack {
+                        Image(systemName: "list.number")
+                            .font(.system(size: 20))
+                        Text("Rankings")
+                            .font(.caption)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .foregroundColor(viewMode == .ranks ? .blue : .gray)
+                }
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 8)
+            .background(Color(.systemBackground))
+        }
+    }
+    
     func addDestination() {
         // Make sure categories exist
         let allCategories = Category.getAllCategories(modelContext: modelContext)
@@ -250,8 +302,11 @@ struct ContentView: View {
 struct RankFilterView: View {
     @Environment(\.modelContext) var modelContext
     @Query var destinations: [Destination]
+    var showCategory: Bool
     
-    init(rank: Int) {
+    init(rank: Int, showCategory: Bool = false) {
+        self.showCategory = showCategory
+        
         // Create a predicate based on the rank
         if rank == -1 {
             // Inbox: rank < 1
@@ -265,17 +320,40 @@ struct RankFilterView: View {
         }
     }
     
+    // Map category names to SF Symbols
+    func symbolForCategory(_ category: Category) -> String {
+        switch category.name {
+        case "Book":
+            return "book.fill"
+        case "Music":
+            return "music.note"
+        case "Film":
+            return "film.fill"
+        case "TV Show":
+            return "tv.fill"
+        case "Video Game":
+            return "gamecontroller.fill"
+        case "Podcast":
+            return "mic.fill"
+        case "Artist":
+            return "paintbrush.fill"
+        default:
+            return "star.fill"
+        }
+    }
+    
     var body: some View {
         List {
             ForEach(destinations) { destination in
                 NavigationLink(value: destination) {
-                    VStack(alignment: .leading) {
-                        Text(destination.name)
-                        if let cat = destination.cat {
-                            Text(cat.name)
-                                .font(.caption)
+                    HStack {
+                        if showCategory, let cat = destination.cat {
+                            Image(systemName: symbolForCategory(cat))
                                 .foregroundColor(.secondary)
+                                .frame(width: 24)
                         }
+                        
+                        Text(destination.name)
                     }
                 }
             }

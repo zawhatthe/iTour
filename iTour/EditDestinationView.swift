@@ -92,20 +92,76 @@ struct EditDestinationView: View {
         // First, determine the current destination's category
         guard let currentCategory = destination.cat else { return }
         
-        // Filter to only destinations that belong to the same category
-        let sameCategory = allDestinations.filter { $0.cat?.id == currentCategory.id }
+        // Filter to only destinations that belong to the same category (excluding the current one)
+        let sameCategoryDestinations = allDestinations.filter {
+            $0.cat?.id == currentCategory.id && $0.id != destination.id
+        }
         
-        // Remove the destination from its old position
-        for otherDestination in sameCategory {
-            if otherDestination.id != destination.id && otherDestination.rank > oldRank {
-                otherDestination.rank -= 1
+        // STEP 1: Handle basic movement between ranks
+        
+        // Moving FROM a numeric rank (1-5) TO Inbox or Archive
+        if (oldRank >= 1 && oldRank <= 5) && (newRank == -1 || newRank == 6) {
+            // We need to shift all other items up to fill the gap
+            // We'll do this in the renumbering step below
+        }
+        // Moving FROM Inbox/Archive TO a numeric rank (1-5)
+        else if (oldRank == -1 || oldRank == 6) && (newRank >= 1 && newRank <= 5) {
+            // We need to make space for the new item at its rank
+            for otherDest in sameCategoryDestinations {
+                if otherDest.rank >= newRank && otherDest.rank <= 5 {
+                    otherDest.rank += 1
+                    
+                    // If this pushes an item beyond 5, move it to Archive
+                    if otherDest.rank > 5 {
+                        otherDest.rank = 6
+                    }
+                }
+            }
+        }
+        // Moving between numeric ranks (1-5)
+        else if (oldRank >= 1 && oldRank <= 5) && (newRank >= 1 && newRank <= 5) {
+            if oldRank < newRank {
+                // Moving DOWN the list (e.g., 1→3): shift items in between UP
+                for otherDest in sameCategoryDestinations {
+                    if otherDest.rank > oldRank && otherDest.rank <= newRank {
+                        otherDest.rank -= 1
+                    }
+                }
+            } else {
+                // Moving UP the list (e.g., 3→1): shift items in between DOWN
+                for otherDest in sameCategoryDestinations {
+                    if otherDest.rank >= newRank && otherDest.rank < oldRank {
+                        otherDest.rank += 1
+                    }
+                }
             }
         }
         
-        // Insert the destination at its new position
-        for otherDestination in sameCategory {
-            if otherDestination.id != destination.id && otherDestination.rank >= newRank {
-                otherDestination.rank += 1
+        // STEP 2: Always renumber all ranked items to ensure proper sequence
+        
+        // This happens regardless of the type of movement
+        let rankedItems = sameCategoryDestinations
+            .filter { $0.rank >= 1 && $0.rank <= 5 }
+            .sorted { $0.rank < $1.rank }
+        
+        // Skip renumbering if we're moving TO a numeric rank (we already made space)
+        if !(newRank >= 1 && newRank <= 5) {
+            // Renumber all items starting from 1
+            for (index, item) in rankedItems.enumerated() {
+                item.rank = index + 1
+            }
+        }
+        
+        // STEP 3: Double-check for any items that may have been pushed out of range
+        for otherDest in sameCategoryDestinations {
+            // Make sure nothing got pushed below 1
+            if otherDest.rank < 1 && otherDest.rank != -1 {
+                otherDest.rank = 1
+            }
+            
+            // Make sure nothing got pushed above 5 (except Archive)
+            if otherDest.rank > 5 && otherDest.rank != 6 {
+                otherDest.rank = 6
             }
         }
     }

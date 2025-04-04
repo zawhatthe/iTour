@@ -13,6 +13,7 @@ struct DestinationListingView: View {
     @Query var destinations: [Destination]
     @State private var isInboxExpanded = false
     @State private var isArchiveExpanded = false
+    var showCategory: Bool
     
     var body: some View {
         List {
@@ -42,7 +43,7 @@ struct DestinationListingView: View {
                             NavigationLink(value: destination) {
                                 VStack(alignment: .leading) {
                                     Text(destination.name)
-                                    if let cat = destination.cat {
+                                    if showCategory, let cat = destination.cat {
                                         Text(cat.name)
                                             .font(.caption)
                                             .foregroundColor(.secondary)
@@ -74,7 +75,7 @@ struct DestinationListingView: View {
                         
                         VStack(alignment: .leading) {
                             Text(destination.name)
-                            if let cat = destination.cat {
+                            if showCategory, let cat = destination.cat {
                                 Text(cat.name)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
@@ -100,7 +101,7 @@ struct DestinationListingView: View {
                             NavigationLink(value: destination) {
                                 VStack(alignment: .leading) {
                                     Text(destination.name)
-                                    if let cat = destination.cat {
+                                    if showCategory, let cat = destination.cat {
                                         Text(cat.name)
                                             .font(.caption)
                                             .foregroundColor(.secondary)
@@ -134,7 +135,9 @@ struct DestinationListingView: View {
         destinations.filter { $0.rank > 5 }
     }
     
-    init(sort: SortDescriptor<Destination>, filterCategory: Category? = nil) {
+    init(sort: SortDescriptor<Destination>, filterCategory: Category? = nil, showCategory: Bool = true) {
+        self.showCategory = showCategory
+        
         if let filterCategory = filterCategory {
             // Use the id for comparison instead of the Category object itself
             let categoryId = filterCategory.id
