@@ -186,7 +186,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 7112D4FE2D9B88F300BB4427 /* Build configuration list for PBXProject "iTour" */;
+			buildConfigurationList = 7112D4FE2D9B88F300BB4427 /* Build configuration list for PBXProject "Pentangle" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -515,7 +515,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		7112D4FE2D9B88F300BB4427 /* Build configuration list for PBXProject "iTour" */ = {
+		7112D4FE2D9B88F300BB4427 /* Build configuration list for PBXProject "Pentangle" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				7112D5252D9B88F500BB4427 /* Debug */,
