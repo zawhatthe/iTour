@@ -37,6 +37,11 @@ struct ContentView: View {
     
     func addDestination() {
         let destination = Destination()
+        
+//        // Find the highest current rank and add 1
+//        let highestRank = try? modelContext.fetch(FetchDescriptor<Destination>(sortBy: [SortDescriptor(\.rank, order: .reverse)])).first?.rank ?? -1
+//        destination.rank = ((highestRank ?? -1) + 1)
+        
         modelContext.insert(destination)
         path = [destination]
     }
