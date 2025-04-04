@@ -37,14 +37,14 @@ class Destination {
     @Attribute(.unique) var id: UUID = UUID()
     
     // One-to-one relationship with Category
-        @Relationship var category: Category?
+    @Relationship var cat: Category?
     
     @Relationship(deleteRule: .cascade) var sights = [Sight]()
     
-    init(name: String = "", details: String = "", rank: Int = -1,category: Category? = nil) {
+    init(name: String = "", details: String = "", rank: Int = -1,cat: Category? = nil) {
         self.name = name
         self.details = details
         self.rank = rank
-        self.category = category
+        self.cat = cat
     }
 }

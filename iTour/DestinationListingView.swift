@@ -105,7 +105,7 @@ struct DestinationListingView: View {
     
     // Computed properties to filter the destinations
     private var inboxItems: [Destination] {
-        destinations.filter { $0.rank < 1 }
+        destinations.filter { $0.rank < 1}
     }
     
     private var regularItems: [Destination] {
@@ -116,14 +116,16 @@ struct DestinationListingView: View {
         destinations.filter { $0.rank > 5 }
     }
     
-    init(sort: SortDescriptor<Destination>, searchString: String) {
-        _destinations = Query(filter: #Predicate {
-            if searchString.isEmpty {
-                return true
-            } else {
-                return $0.name.localizedStandardContains(searchString)
-            }
-        }, sort: [sort])
+    init(sort: SortDescriptor<Destination>, filterCategory: Category? = nil) {
+        if let filterCategory = filterCategory {
+            // Use the id for comparison instead of the Category object itself
+            let categoryId = filterCategory.id
+            _destinations = Query(filter: #Predicate<Destination> {
+                $0.cat?.id == categoryId
+            }, sort: [sort])
+        } else {
+            _destinations = Query(sort: [sort])
+        }
     }
     
     func deleteInboxItems(at offsets: IndexSet) {
@@ -149,5 +151,5 @@ struct DestinationListingView: View {
 }
 
 #Preview {
-    DestinationListingView(sort: SortDescriptor(\Destination.name), searchString: "")
+    DestinationListingView(sort: SortDescriptor(\Destination.name), filterCategory: Category.allCategories.first!)
 }

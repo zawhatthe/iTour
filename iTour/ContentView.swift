@@ -12,21 +12,21 @@ struct ContentView: View {
     @Environment(\.modelContext) var modelContext
     @State private var path = [Destination]()
     @State private var sortOrder = SortDescriptor(\Destination.rank)
-    @State private var filterCategory = Category.allCategories.first!
+    @State private var filterCat = Category.allCategories.first!
     @State private var searchText: String = ""
     
     var body: some View {
         NavigationStack(path: $path) {
-            DestinationListingView(sort: sortOrder, searchString: searchText)
+            DestinationListingView(sort: sortOrder, filterCategory: filterCat)
             .navigationTitle("Pentangle")
             .navigationDestination(for: Destination.self, destination: EditDestinationView.init)
-            .searchable(text: $searchText)
+//            .searchable(text: $searchText)
             .toolbar {
                 Button("Add Destination", systemImage: "plus", action: addDestination)
                 Menu("Sort", systemImage: "arrow.up.arrow.down") {
-                    Picker("Sort", selection: $filterCategory) {
-                        ForEach(Category.allCategories) { category in
-                            Text(category.name).tag(category)
+                    Picker("Sort", selection: $filterCat) {
+                        ForEach(Category.allCategories) { cat in
+                            Text(cat.name + "s").tag(cat)
                         }
                     }
                     .pickerStyle(.inline)
@@ -37,11 +37,6 @@ struct ContentView: View {
     
     func addDestination() {
         let destination = Destination()
-        
-//        // Find the highest current rank and add 1
-//        let highestRank = try? modelContext.fetch(FetchDescriptor<Destination>(sortBy: [SortDescriptor(\.rank, order: .reverse)])).first?.rank ?? -1
-//        destination.rank = ((highestRank ?? -1) + 1)
-        
         modelContext.insert(destination)
         path = [destination]
     }

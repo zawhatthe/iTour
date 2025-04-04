@@ -14,6 +14,6 @@ struct iTourApp: App {
         WindowGroup {
             ContentView()
         }
-        .modelContainer(for: Destination.self)
+        .modelContainer(for: [Destination.self, Category.self, Sight.self])
     }
 }

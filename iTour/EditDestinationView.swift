@@ -27,7 +27,7 @@ struct EditDestinationView: View {
     var body: some View {
         Form {
             Section("Category") {
-                Picker("Category", selection: $destination.category) {
+                Picker("Category", selection: $destination.cat) {
                     ForEach(Category.allCategories) { category in
                         Text(category.name).tag(category)
                         
@@ -81,15 +81,21 @@ struct EditDestinationView: View {
         // If rank didn't actually change, do nothing
         if oldRank == newRank { return }
         
+        // First, determine the current destination's category
+        guard let currentCategory = destination.cat else { return }
+        
+        // Filter to only destinations that belong to the same category
+        let sameCategory = allDestinations.filter { $0.cat?.id == currentCategory.id }
+        
         // Remove the destination from its old position
-        for otherDestination in allDestinations {
+        for otherDestination in sameCategory {
             if otherDestination.id != destination.id && otherDestination.rank > oldRank {
                 otherDestination.rank -= 1
             }
         }
         
         // Insert the destination at its new position
-        for otherDestination in allDestinations {
+        for otherDestination in sameCategory {
             if otherDestination.id != destination.id && otherDestination.rank >= newRank {
                 otherDestination.rank += 1
             }
