@@ -13,7 +13,7 @@ struct EditDestinationView: View {
     @State private var newSightName: String = ""
     @Environment(\.modelContext) private var modelContext
     @Query var allDestinations: [Destination]
-    @State private var selectedCategory: Category = Category.allCategories.first!
+    @State private var categories: [Category] = []
     
     // Store the original rank when editing begins
     @State private var originalRank: Int
@@ -28,9 +28,8 @@ struct EditDestinationView: View {
         Form {
             Section("Category") {
                 Picker("Category", selection: $destination.cat) {
-                    ForEach(Category.allCategories) { category in
-                        Text(category.name).tag(category)
-                        
+                    ForEach(categories) { category in
+                        Text(category.name).tag(category as Category?)
                     }
                 }
             }
@@ -43,17 +42,18 @@ struct EditDestinationView: View {
                     Text("Inbox").tag(-1)
                     ForEach(1...5, id: \.self) { number in
                         Text("\(number)").tag(number)
-                                    }
+                    }
                     Text("Archive").tag(6)
                 }
                 .pickerStyle(.wheel)
                 .onChange(of: destination.rank) { oldValue, newValue in
-                                    updateRanks(from: oldValue, to: newValue)
-                                }
+                    updateRanks(from: oldValue, to: newValue)
+                }
             }
             
             Section("Sights") {
-                ForEach(destination.sights) { sight in                        Text(sight.name)
+                ForEach(destination.sights) { sight in
+                    Text(sight.name)
                 }
                 
                 HStack {
@@ -61,10 +61,18 @@ struct EditDestinationView: View {
                     Button("Add", action: addSight)
                 }
             }
-            
         }
         .navigationTitle("Edit Destination")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            // Load categories from the database
+            categories = Category.getAllCategories(modelContext: modelContext)
+            
+            // If destination doesn't have a category yet, set the first one
+            if destination.cat == nil && !categories.isEmpty {
+                destination.cat = categories.first
+            }
+        }
     }
     
     func addSight() {
@@ -101,7 +109,6 @@ struct EditDestinationView: View {
             }
         }
     }
-    
 }
 
 #Preview {

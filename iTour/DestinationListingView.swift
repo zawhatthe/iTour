@@ -10,20 +10,20 @@ import SwiftUI
 
 struct DestinationListingView: View {
     @Environment(\.modelContext) var modelContext
-    @Query(sort: [SortDescriptor(\Destination.rank), SortDescriptor(\Destination.name)]) var destinations: [Destination]
+    @Query var destinations: [Destination]
     @State private var isInboxExpanded = false
     @State private var isArchiveExpanded = false
     
     var body: some View {
         List {
             // Inbox section
-                inboxSection
+            inboxSection
             
             // Regular items section
-                regularItemsSection
+            regularItemsSection
             
             // Archive section
-                archiveSection
+            archiveSection
         }
     }
     
@@ -42,6 +42,11 @@ struct DestinationListingView: View {
                             NavigationLink(value: destination) {
                                 VStack(alignment: .leading) {
                                     Text(destination.name)
+                                    if let cat = destination.cat {
+                                        Text(cat.name)
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
                                 }
                             }
                         }
@@ -66,7 +71,15 @@ struct DestinationListingView: View {
                     HStack {
                         Text("\(destination.rank)")
                             .font(.headline)
-                        Text(destination.name)
+                        
+                        VStack(alignment: .leading) {
+                            Text(destination.name)
+                            if let cat = destination.cat {
+                                Text(cat.name)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
                     }
                 }
             }
@@ -87,6 +100,11 @@ struct DestinationListingView: View {
                             NavigationLink(value: destination) {
                                 VStack(alignment: .leading) {
                                     Text(destination.name)
+                                    if let cat = destination.cat {
+                                        Text(cat.name)
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
                                 }
                             }
                         }
@@ -151,5 +169,15 @@ struct DestinationListingView: View {
 }
 
 #Preview {
-    DestinationListingView(sort: SortDescriptor(\Destination.name), filterCategory: Category.allCategories.first!)
+    do {
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: Destination.self, configurations: config)
+        let modelContext = ModelContext(container)
+        let categories = Category.getAllCategories(modelContext: modelContext)
+        
+        return DestinationListingView(sort: SortDescriptor(\Destination.name), filterCategory: categories.first)
+            .modelContainer(container)
+    } catch {
+        fatalError("Failed to create model container.")
+    }
 }
