@@ -10,10 +10,17 @@ import SwiftData
 
 @main
 struct iTourApp: App {
+    @State private var authManager = AuthManager()
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
+                .environmentObject(authManager)
         }
-        .modelContainer(for: [Destination.self, Category.self, Sight.self])
+        .modelContainer(for: [User.self, Destination.self, Category.self, Sight.self]) { container in
+            // Initialize authManager with the model context
+            let context = container.mainContext
+            authManager.initialize(with: context)
+        }
     }
 }

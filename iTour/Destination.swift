@@ -17,56 +17,16 @@ class Category {
         self.name = name
     }
 
-    // Static names of predefined categories - not the actual objects
-    static let predefinedCategories = [
-        "Book",
-        "Music",
-        "Film",
-        "TV Show",
-        "Video Game",
-        "Podcast",
-        "Artist"
+    // Static list of predefined categories
+    static let allCategories: [Category] = [
+        Category(name: "Book"),
+        Category(name: "Music"),
+        Category(name: "Film"),
+        Category(name: "TV Show"),
+        Category(name: "Video Game"),
+        Category(name: "Podcast"),
+        Category(name: "Artist")
     ]
-    
-    // Fetch or create categories from the database
-    static func getAllCategories(modelContext: ModelContext) -> [Category] {
-        do {
-            // Try to fetch existing categories
-            let descriptor = FetchDescriptor<Category>(sortBy: [SortDescriptor(\.name)])
-            let existingCategories = try modelContext.fetch(descriptor)
-            
-            // If we have all our categories already, return them
-            if existingCategories.count >= predefinedCategories.count {
-                return existingCategories
-            }
-            
-            // Otherwise, create missing categories
-            var categories: [Category] = []
-            
-            for categoryName in predefinedCategories {
-                // Check if this category already exists
-                let fetchDescriptor = FetchDescriptor<Category>(
-                    predicate: #Predicate { $0.name == categoryName }
-                )
-                
-                let existing = try modelContext.fetch(fetchDescriptor)
-                
-                if let existingCategory = existing.first {
-                    categories.append(existingCategory)
-                } else {
-                    // Create new category if it doesn't exist
-                    let newCategory = Category(name: categoryName)
-                    modelContext.insert(newCategory)
-                    categories.append(newCategory)
-                }
-            }
-            
-            return categories
-        } catch {
-            print("Error fetching or creating categories: \(error)")
-            return []
-        }
-    }
 }
 
 @Model
@@ -75,16 +35,22 @@ class Destination {
     var details: String
     var rank: Int
     @Attribute(.unique) var id: UUID = UUID()
+    var isPublic: Bool = false // Whether this destination is visible to other users
     
     // One-to-one relationship with Category
-    @Relationship var cat: Category?
+    @Relationship var category: Category?
+    
+    // Relationship to the user who created this destination
+    @Relationship var creator: User?
     
     @Relationship(deleteRule: .cascade) var sights = [Sight]()
     
-    init(name: String = "", details: String = "", rank: Int = -1, cat: Category? = nil) {
+    init(name: String = "", details: String = "", rank: Int = -1, category: Category? = nil, creator: User? = nil, isPublic: Bool = false) {
         self.name = name
         self.details = details
         self.rank = rank
-        self.cat = cat
+        self.category = category
+        self.creator = creator
+        self.isPublic = isPublic
     }
 }
